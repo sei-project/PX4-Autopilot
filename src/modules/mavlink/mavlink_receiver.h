@@ -128,17 +128,6 @@ public:
 
 	static void *start_helper(void *context);
 
-	/**
-	 * Set the cruising speed in offboard control
-	 *
-	 * Passing a negative value or leaving the parameter away will reset the cruising speed
-	 * to its default value.
-	 *
-	 * Sets cruising speed for current flight mode only (resets on mode changes).
-	 *
-	 */
-	void set_offb_cruising_speed(float speed = -1.0f);
-
 private:
 
 	void acknowledge(uint8_t sysid, uint8_t compid, uint16_t command, uint8_t result);
@@ -225,21 +214,12 @@ private:
 	int set_message_interval(int msgId, float interval, int data_rate = -1);
 	void get_message_interval(int msgId);
 
-	/**
-	 * Decode a switch position from a bitfield and state.
-	 */
-	int decode_switch_pos_n(uint16_t buttons, unsigned sw);
-
 	bool evaluate_target_ok(int command, int target_system, int target_component);
 
 	void fill_thrust(float *thrust_body_array, uint8_t vehicle_type, float thrust);
 
 	void schedule_tune(const char *tune);
 
-	/**
-	 * @brief Updates the battery, optical flow, and flight ID subscribed parameters.
-	 */
-	void update_params();
 
 	Mavlink				*_mavlink;
 
@@ -390,10 +370,6 @@ private:
 	PX4Barometer *_px4_baro{nullptr};
 	PX4Gyroscope *_px4_gyro{nullptr};
 	PX4Magnetometer *_px4_mag{nullptr};
-
-	static constexpr unsigned int	MOM_SWITCH_COUNT{8};
-	uint8_t				_mom_switch_pos[MOM_SWITCH_COUNT] {};
-	uint16_t			_mom_switch_state{0};
 
 	hrt_abstime			_last_utm_global_pos_com{0};
 
