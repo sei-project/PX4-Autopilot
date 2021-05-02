@@ -128,8 +128,8 @@ enum GLOB_CMD_BIT : uint16_t {
 
 // SMPL_PRD
 enum SMPL_PRD_BIT : uint16_t {
-	// [12:8] D, decimation rate setting, binomial,
-	decimation_rate = Bit12 | Bit11 | Bit10 | Bit9, // disable
+	// [12:8] D, decimation rate setting, binomial
+	decimation_rate = Bit12 | Bit11 | Bit10 | Bit9 | Bit8, // disable
 
 	internal_sampling_clock = Bit0, // 1 = internal sampling clock, 819.2 SPS
 };

@@ -101,21 +101,25 @@ int ADIS16470::probe()
 		PX4_WARN("Power-On Start-Up Time is 205 ms");
 	}
 
-	const uint16_t PROD_ID = RegisterRead(Register::PROD_ID);
+	for (int attempt = 0; attempt < 10; attempt++) {
+		const uint16_t PROD_ID = RegisterRead(Register::PROD_ID);
 
-	if (PROD_ID != Product_identification) {
-		DEVICE_DEBUG("unexpected PROD_ID 0x%02x", PROD_ID);
-		return PX4_ERROR;
+		if (PROD_ID == Product_identification) {
+			const uint16_t SERIAL_NUM = RegisterRead(Register::SERIAL_NUM);
+			const uint16_t FIRM_REV = RegisterRead(Register::FIRM_REV);
+			const uint16_t FIRM_DM = RegisterRead(Register::FIRM_DM);
+			const uint16_t FIRM_Y = RegisterRead(Register::FIRM_Y);
+
+			PX4_INFO("Serial Number: 0x%X, Firmware revision: 0x%X Date: Y %X DM %X", SERIAL_NUM, FIRM_REV, FIRM_Y, FIRM_DM);
+
+			return PX4_OK;
+
+		} else {
+			DEVICE_DEBUG("unexpected PROD_ID 0x%02x", PROD_ID);
+		}
 	}
 
-	const uint16_t SERIAL_NUM = RegisterRead(Register::SERIAL_NUM);
-	const uint16_t FIRM_REV = RegisterRead(Register::FIRM_REV);
-	const uint16_t FIRM_DM = RegisterRead(Register::FIRM_DM);
-	const uint16_t FIRM_Y = RegisterRead(Register::FIRM_Y);
-
-	PX4_INFO("Serial Number: 0x%X, Firmware revision: 0x%X Date: Y %X DM %X", SERIAL_NUM, FIRM_REV, FIRM_Y, FIRM_DM);
-
-	return PX4_OK;
+	return PX4_ERROR;
 }
 
 void ADIS16470::RunImpl()
@@ -176,6 +180,7 @@ void ADIS16470::RunImpl()
 				ScheduleNow();
 			}
 		}
+
 		break;
 
 	case STATE::CONFIGURE:
@@ -235,7 +240,6 @@ void ADIS16470::RunImpl()
 			static_assert(sizeof(BurstRead) == (176 / 8), "ADIS16470 report not 176 bits");
 
 			buffer.cmd = static_cast<uint16_t>(Register::GLOB_CMD) << 8;
-
 			set_frequency(SPI_SPEED_BURST);
 
 			if (transferhword((uint16_t *)&buffer, (uint16_t *)&buffer, sizeof(buffer) / sizeof(uint16_t)) == PX4_OK) {

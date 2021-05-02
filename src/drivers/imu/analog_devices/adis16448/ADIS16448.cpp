@@ -105,6 +105,7 @@ ADIS16448::ADIS16448(I2CSPIBusOption bus_option, int bus, uint32_t device, enum 
 	_px4_gyro(get_device_id(), rotation),
 	_px4_mag(get_device_id(), rotation)
 {
+	_debug_enabled = true;
 }
 
 ADIS16448::~ADIS16448()
@@ -159,25 +160,29 @@ int ADIS16448::probe()
 		PX4_WARN("Power-On Start-Up Time is 205 ms");
 	}
 
-	const uint16_t PROD_ID = RegisterRead(Register::PROD_ID);
+	for (int attempt = 0; attempt < 10; attempt++) {
+		const uint16_t PROD_ID = RegisterRead(Register::PROD_ID);
 
-	if (PROD_ID != Product_identification) {
-		DEVICE_DEBUG("unexpected PROD_ID 0x%02x", PROD_ID);
-		return PX4_ERROR;
+		if (PROD_ID == Product_identification) {
+			const uint16_t SERIAL_NUM = RegisterRead(Register::SERIAL_NUM);
+			const uint16_t LOT_ID1 = RegisterRead(Register::LOT_ID1);
+			const uint16_t LOT_ID2 = RegisterRead(Register::LOT_ID2);
+
+			PX4_INFO("Serial Number: 0x%02x, Lot ID1: 0x%02x ID2: 0x%02x", SERIAL_NUM, LOT_ID1, LOT_ID2);
+
+			// Only enable CRC-16 for verified lots (HACK to support older ADIS16448AMLZ with no explicit detection)
+			if (LOT_ID1 == 0x1824) {
+				_check_crc = true;
+			}
+
+			return PX4_OK;
+
+		} else {
+			DEVICE_DEBUG("unexpected PROD_ID 0x%02x", PROD_ID);
+		}
 	}
 
-	const uint16_t SERIAL_NUM = RegisterRead(Register::SERIAL_NUM);
-	const uint16_t LOT_ID1 = RegisterRead(Register::LOT_ID1);
-	const uint16_t LOT_ID2 = RegisterRead(Register::LOT_ID2);
-
-	PX4_INFO("Serial Number: 0x%02x, Lot ID1: 0x%02x ID2: 0x%02x", SERIAL_NUM, LOT_ID1, LOT_ID2);
-
-	// Only enable CRC-16 for verified lots (HACK to support older ADIS16448AMLZ with no explicit detection)
-	if (LOT_ID1 == 0x1824) {
-		_check_crc = true;
-	}
-
-	return PX4_OK;
+	return PX4_ERROR;
 }
 
 void ADIS16448::RunImpl()
@@ -212,7 +217,7 @@ void ADIS16448::RunImpl()
 
 				} else {
 					PX4_DEBUG("Reset not complete, check again in 10 ms");
-					ScheduleDelayed(10_ms);
+					ScheduleDelayed(100_ms);
 				}
 			}
 
