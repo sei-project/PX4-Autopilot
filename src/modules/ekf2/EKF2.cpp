@@ -1731,7 +1731,6 @@ int EKF2::task_spawn(int argc, char *argv[])
 			}
 		}
 
-		const hrt_abstime time_started = hrt_absolute_time();
 		const int multi_instances = math::min(imu_instances * mag_instances, (int)EKF2_MAX_INSTANCES);
 		int multi_instances_allocated = 0;
 
@@ -1741,8 +1740,7 @@ int EKF2::task_spawn(int argc, char *argv[])
 		bool ekf2_instance_created[4][4] {}; // IMUs * mags
 
 		while ((multi_instances_allocated < multi_instances)
-		       && (vehicle_status_sub.get().arming_state != vehicle_status_s::ARMING_STATE_ARMED)
-		       && (hrt_elapsed_time(&time_started) < 30_s)) {
+		       && (vehicle_status_sub.get().arming_state != vehicle_status_s::ARMING_STATE_ARMED)) {
 
 			vehicle_status_sub.update();
 
