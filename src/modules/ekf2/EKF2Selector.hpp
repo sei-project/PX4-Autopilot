@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2020 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2020-2021 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -78,10 +78,10 @@ private:
 	static constexpr uint64_t FILTER_UPDATE_PERIOD{10_ms};
 
 	void Run() override;
-	void PublishVehicleAttitude(bool reset = false);
-	void PublishVehicleLocalPosition(bool reset = false);
-	void PublishVehicleGlobalPosition(bool reset = false);
-	void PublishWindEstimate(bool reset = false);
+	void PublishVehicleAttitude();
+	void PublishVehicleLocalPosition();
+	void PublishVehicleGlobalPosition();
+	void PublishWindEstimate();
 	bool SelectInstance(uint8_t instance);
 
 	// Update the error scores for all available instances
@@ -190,6 +190,11 @@ private:
 	uint8_t _vxy_reset_counter{0};
 	uint8_t _vz_reset_counter{0};
 	uint8_t _heading_reset_counter{0};
+
+	uint8_t _attitude_instance_prev{INVALID_INSTANCE};
+	uint8_t _local_position_instance_prev{INVALID_INSTANCE};
+	uint8_t _global_position_instance_prev{INVALID_INSTANCE};
+	uint8_t _wind_instance_prev{INVALID_INSTANCE};
 
 	// vehicle_global_position: reset counters
 	vehicle_global_position_s _global_position_last{};
